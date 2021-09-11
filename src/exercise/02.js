@@ -4,23 +4,7 @@
 import * as React from 'react'
 
 function Greeting({initialName = ''}) {
-  // no primeiro render, vai pegar o valor do localStorage
-  const [name, setName] = React.useState(
-    // lazy state initialization
-    () => {
-      return window.localStorage.getItem('name') || initialName
-    },
-  )
-
-  // vai disparar depois de cada render desse componente.
-  // input -> handleChange -> render -> effect
-  React.useEffect(() => {
-    window.localStorage.setItem('name', name)
-  })
-
-  // 🐨 Here's where you'll use `React.useEffect`.
-  // The callback should set the `name` in localStorage.
-  // 💰 window.localStorage.setItem('name', name)
+  const [name, setName] = useLocalStorageState(initialName)
 
   function handleChange(event) {
     setName(event.target.value)
@@ -38,6 +22,17 @@ function Greeting({initialName = ''}) {
 
 function App() {
   return <Greeting />
+}
+
+function useLocalStorageState(initialName) {
+  const [name, setName] = React.useState(() => {
+    return window.localStorage.getItem('name') || initialName
+  })
+
+  React.useEffect(() => {
+    window.localStorage.setItem('name', name)
+  }, [name])
+  return [name, setName]
 }
 
 export default App
