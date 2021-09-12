@@ -4,18 +4,18 @@
 import * as React from 'react'
 
 function Greeting({initialName = ''}) {
-  const [name, setName] = useLocalStorageState(initialName)
+  const [number, setNumber] = useLocalStorageState('number', 0)
 
   function handleChange(event) {
-    setName(event.target.value)
+    setNumber(event.target.value)
   }
   return (
     <div>
       <form>
         <label htmlFor="name">Name: </label>
-        <input value={name} onChange={handleChange} id="name" />
+        <input value={number} onChange={handleChange} id="name" />
       </form>
-      {name ? <strong>Hello {name}</strong> : 'Please type your name'}
+      {number ? <strong>Hello {number}</strong> : 'Please type your name'}
     </div>
   )
 }
@@ -23,16 +23,26 @@ function Greeting({initialName = ''}) {
 function App() {
   return <Greeting />
 }
-
-function useLocalStorageState(initialName) {
-  const [name, setName] = React.useState(() => {
-    return window.localStorage.getItem('name') || initialName
+// retorna um valor e uma função para atualizar o valor.
+function useLocalStorageState(
+  key,
+  defaultValue,
+  {serialize = JSON.stringify, deserialize = JSON.parse} = {},
+) {
+  const [value, setValue] = React.useState(() => {
+    const foundValue = window.localStorage.getItem(key)
+    if (!foundValue) {
+      // checagem a mais para ver se é função.
+      return defaultValue
+    }
+    return deserialize(foundValue)
   })
 
   React.useEffect(() => {
-    window.localStorage.setItem('name', name)
-  }, [name])
-  return [name, setName]
+    window.localStorage.setItem(key, serialize(value))
+  }, [key, value, serialize])
+
+  return [value, setValue]
 }
 
 export default App
