@@ -4,7 +4,7 @@
 import * as React from 'react'
 
 function Greeting({initialName = ''}) {
-  const [number, setNumber] = useLocalStorageState('number', 0)
+  const [number, setNumber] = useLocalStorageState('name', 'léo')
 
   function handleChange(event) {
     setNumber(event.target.value)
@@ -23,7 +23,7 @@ function Greeting({initialName = ''}) {
 function App() {
   return <Greeting />
 }
-// retorna um valor e uma função para atualizar o valor.
+
 function useLocalStorageState(
   key,
   defaultValue,
@@ -31,14 +31,29 @@ function useLocalStorageState(
 ) {
   const [value, setValue] = React.useState(() => {
     const foundValue = window.localStorage.getItem(key)
-    if (!foundValue) {
-      // checagem a mais para ver se é função.
-      return defaultValue
+    if (foundValue) {
+      return deserialize(foundValue)
     }
-    return deserialize(foundValue)
+    /*
+    Talvez o default value seja algo caro de se computar. Seria legal aceitar a opção do default value ser uma função.
+    */
+    return typeof defaultValue === 'function' ? defaultValue() : defaultValue
   })
 
+  // talvez a chave onde um valor está sendo salvo mude. Não queremos manter as duas chaves!
+  // podemos remover a chave antiga. Pra isso, precisamos saber qual é a chave antiga.
+
+  /*
+  pense no useRef assim: Um objeto persistido entre renders que você pode mutar sem causar re-renders.
+  */
+  const prevKeyRef = React.useRef()
+
   React.useEffect(() => {
+    const prevKey = prevKeyRef.current
+    if (prevKey !== key) {
+      window.localStorage.removeItem(prevKey)
+    }
+    prevKey = key
     window.localStorage.setItem(key, serialize(value))
   }, [key, value, serialize])
 
