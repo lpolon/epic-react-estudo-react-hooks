@@ -49,11 +49,10 @@ function useLocalStorageState(
   const prevKeyRef = React.useRef()
 
   React.useEffect(() => {
-    const prevKey = prevKeyRef.current
-    if (prevKey !== key) {
-      window.localStorage.removeItem(prevKey)
+    if (prevKeyRef.current !== key) {
+      window.localStorage.removeItem(prevKeyRef.current)
     }
-    prevKey = key
+    prevKeyRef.current = key
     window.localStorage.setItem(key, serialize(value))
   }, [key, value, serialize])
 
